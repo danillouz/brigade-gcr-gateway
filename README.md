@@ -1,2 +1,3 @@
-# brigade-gcr-gateway
+# Brigade GCR Gateway
+
 Brigade Gateway for Google Container Registry.
