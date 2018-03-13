@@ -1,5 +1,8 @@
 FROM golang:1.10 AS build
 WORKDIR /go/src/github.com/danillouz/app/
+RUN go get github.com/Azure/brigade/pkg/brigade
+RUN go get github.com/Azure/brigade/pkg/storage
+RUN go get github.com/Azure/brigade/pkg/storage/kube
 RUN go get github.com/gin-gonic/gin
 COPY server.go .
 RUN CGO_ENABLED=0 GOOS=linux go build .

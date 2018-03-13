@@ -1,0 +1,44 @@
+FORMAT: 1A
+HOST: http://localhost:8080
+
+# Client Config
+
+Brigade Gateway for Google Container Registry.
+
+# Group Miscellaneous
+
+## Health [/health]
+
+### Shows service health info [GET]
+
++ Response 200 (application/json)
+
+        {
+            "message": "OK"
+        }
+
+# Group GCR Webhooks
+
+Google Container Registry Webhooks.
+
+## Webhook [/webhook/{org}/{repo}/{commit}]
+
++ Parameters
+    + org: danillouz (string) - The organization name.
+    + repo: brigade-hello-world (string) - The repository name.
+    + commit: master (string) - The symbolic reference name.
+
+### Create Brigade Build [POST]
+
++ Request (application/json)
+
+    + Attributes
+        + name: Daniel - TODO
+
++ Response 200 (application/json)
+
+    + Body
+
+            {
+                "message" "OK"
+            }
