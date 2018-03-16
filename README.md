@@ -11,7 +11,7 @@ $ KUBECONFIG="$HOME/.kube/config" NAMESPACE=default go run server.go
 ### Using Helm
 
 ```
-$ helm install ./charts/brigade-gcr-gateway --set brigade.namespace=staging
+$ helm install ./charts/brigade-gcr-gateway --set brigade.namespace=staging -n brigade-gcr-gateway
 ```
 
 Then run:
