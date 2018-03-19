@@ -10,11 +10,13 @@ $ KUBECONFIG="$HOME/.kube/config" NAMESPACE=default go run server.go
 
 ### Using Helm
 
+_It's recommended that Brigade is installed in it's own namespace, see the [Brigade Security Guide](https://github.com/Azure/brigade/blob/master/docs/topics/security.md) for more information._
+
 ```
-$ helm install ./charts/brigade-gcr-gateway --set brigade.namespace=staging -n brigade-gcr-gateway
+$ helm install ./charts/brigade-gcr-gateway --namespace brigade --set brigade.namespace=brigade --set rbac.enabled=true -n brigade-gcr-gateway
 ```
 
-Then run:
+### Minikube
 
 ```
 $ minikube service brigade-gcr-gateway

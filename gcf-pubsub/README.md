@@ -8,6 +8,18 @@ $ gcloud pubsub topics create projects/[PROJECT_ID]/topics/gcr
 
 # Create Background Function
 
+Navigate to `gcf-pubsub`:
+
+```
+$ cd gcf-pubsub
+```
+
+Create a config file:
+
+```
+$ touch config.json
+```
+
 https://cloud.google.com/functions/docs/writing/background
 
 Implement a cloud function in `./index.js`.

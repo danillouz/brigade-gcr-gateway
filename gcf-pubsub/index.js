@@ -1,8 +1,9 @@
 'use strict';
 
-exports.handle_gcr_events = event => {
-  console.log('event: ', event);
+const fetch = require('node-fetch');
+const config = require('./config');
 
+exports.handle_gcr_events = event => {
   /*
     event: {
       context: {
@@ -24,18 +25,7 @@ exports.handle_gcr_events = event => {
   */
 
   const msg = event.data;
-
-  console.log('msg: ', msg);
-
-  /*
-    msg: {
-      '@type': 'type.googleapis.com/google.pubsub.v1.PubsubMessage',
-      attributes: {},
-      data: 'yJhYp24isdkdksldkekdjffkdsQWeOiJJTlNFUlQiL='
-    }
-  */
-
-  const data = msg.data ? Buffer.from(msg.data, 'base64').toString() : '';
+  const data = Buffer.from(msg.data, 'base64').toString();
 
   console.log('data: ', data);
 
@@ -47,5 +37,31 @@ exports.handle_gcr_events = event => {
     }
   */
 
-  return Promise.resolve();
+  // FIXME
+  const url = `${config.brigade_gcr_gateway}/webhook/${config.org}/${config.repo}/${config.commit}`;
+
+  console.log('url: ', url);
+
+  const options = {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: {
+      context: event.context,
+      data
+    }
+  };
+
+  return fetch(url, options)
+    .then(res => {
+      if (!res.ok) {
+        throw new Error(res.statusText);
+      }
+
+      return res.json();
+    })
+    .then(json => {
+      console.log('res json: ', json);
+    });
 };

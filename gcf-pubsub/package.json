@@ -11,5 +11,8 @@
   "license": "MIT",
   "engines": {
     "node": ">=6.11.5"
+  },
+  "dependencies": {
+    "node-fetch": "^2.1.1"
   }
 }
