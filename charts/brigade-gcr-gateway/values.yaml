@@ -1,3 +1,7 @@
+# GCR Gateway requires permissions to create secrets (Brigade events)
+rbac:
+  enabled: false
+
 replicaCount: 1
 
 image:
@@ -7,6 +11,9 @@ image:
 
 brigade:
   namespace: default
+
+istio:
+  injectSideCar: "false"
 
 service:
   type: LoadBalancer
