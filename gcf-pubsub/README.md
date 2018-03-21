@@ -1,12 +1,24 @@
-# Create Pub/Sub Topic
+# Google Cloud Function Pub/Sub
 
-https://cloud.google.com/container-registry/docs/configuring-notifications
+In order to be able to send Google Container Registry (GCR) events to the Brigade GCR Gateway, we
+need to set up a Pub/Sub topic which will get messages delivered when Docker Images are pushed to and
+deleted from the GCR. Additionally we have to deploy a Google Cloud Function (GCF) which is
+subscribed to the GCR Pub/Sub topic. The GCF will make an HTTP request to the Brigade GCR Gateway
+when a Docker Image is pushed/deleted, which will trigger a Brigade worker that executes a Brigade
+Project with the sent payload (`gcrContext` and `imageData`).
+
+Follow the following steps to implement the mentioned workflow:
+
+## 1. Create a GCR Pub/Sub Topic
 
 ```
 $ gcloud pubsub topics create projects/[PROJECT_ID]/topics/gcr
 ```
 
-# Create Background Function
+See [configuring notifications](https://cloud.google.com/container-registry/docs/configuring-notifications)
+for more information.
+
+## 2. Create a Background Function
 
 Navigate to `gcf-pubsub`:
 
@@ -20,13 +32,19 @@ Create a config file:
 $ touch config.json
 ```
 
-https://cloud.google.com/functions/docs/writing/background
+The config file must contain the following values:
 
-Implement a cloud function in `./index.js`.
+```json
+{
+  "brigade_gcr_gateway": "https://my-brigade-gcr-gateway.com"
+}
+```
 
-# Deploy Function
+_Note that it's recommended to NOT store the `config.json` in VCS._
 
-https://cloud.google.com/functions/docs/tutorials/pubsub
+Implement a cloud function in `./index.js`. See [writing background functions](https://cloud.google.com/functions/docs/writing/background) for more information.
+
+## 3. Deploy the Background Function
 
 From the `gcf_pubsub` directory run:
 
@@ -36,31 +54,39 @@ $ gcloud beta functions deploy [FUNCTION_NAME] --trigger-resource [PUBSUB_TOPIC_
 
 Where `[FUNCTION_NAME]` is the name of the exported cloud function in `./index.js`, i.e. `exports.handle_gcr_events`.
 
-Example:
+For example:
 
 ```
 $ gcloud beta functions deploy handle_gcr_events --trigger-resource gcr --trigger-event google.pubsub.topic.publish
 ```
 
-# Manual Trigger
+See the [pubsub tutorial](https://cloud.google.com/functions/docs/tutorials/pubsub) for more
+information.
+
+## Triggering Cloud Functions
+
+The GCF will now trigger when a Docker Image is pushed or deleted, but it can also be triggered
+manually:
 
 ```
 $ gcloud beta pubsub topics publish [PUBSUB_TOPIC_NAME] --message [PAYLOAD]
 ```
 
-Example:
+For example:
 
 ```
 $ gcloud beta pubsub topics publish gcr --message "daniel"
 ```
 
-# Logs
+_Note that usually the cloud function will expect the message to be `Bas64` encoded._
+
+## Viewing Cloud Function Logs
 
 ```
 $ gcloud beta functions logs read --limit 50
 ```
 
-# Delete
+## Deleting Cloud Functions
 
 ```
 $ gcloud beta functions delete [FUNCTION_NAME]

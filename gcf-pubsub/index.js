@@ -31,6 +31,9 @@ exports.handle_gcr_events = event => {
   */
 
   const msg = event.data;
+
+  console.log('raw data: ', msg.data);
+
   const data = Buffer.from(msg.data, 'base64').toString();
 
   /*
@@ -49,8 +52,22 @@ exports.handle_gcr_events = event => {
     An action will either be "INSERT" or "DELETE".
   */
 
-  // FIXME
-  const url = `${config.brigade_gcr_gateway}/webhook/${config.org}/${config.repo}/${config.commit}`;
+  const [imageName, imageTag] = data.tag.split(':');
+  const [, , org, repo] = imageName.split('/');
+
+  if (!imageName || !imageTag || !org || !repo) {
+    throw new Error(
+      'Invalid Docker Image Name Format. A valid format has the form "gcr.io/GKE_PROJECT/ORG/REPO:TAG"'
+    );
+  }
+
+  /*
+    `commit` is the upstream VCS commit ID (revision). The Brigade GitHub Gateway for example,
+    provides the Git commit ID using this property. If it is not provided, it may be interpreted as
+    `master`, or the head of the main branch.
+  */
+  const commit = 'master';
+  const url = `${config.brigade_gcr_gateway}/webhook/${org}/${repo}/${commit}`;
 
   const options = {
     method: 'POST',
@@ -64,12 +81,12 @@ exports.handle_gcr_events = event => {
   };
 
   return fetch(url, options)
-    .then(res => {
+    .then(([status, statusText, json]) => {
       if (!res.ok) {
         console.error('res status code: ', res.status);
         console.error('res status text: ', res.statusText);
 
-        throw new Error(res.statusText);
+        throw new Error(res.status === 404 ? 'Brigade Project Not Found' : res.statusText);
       }
 
       return res.json();
