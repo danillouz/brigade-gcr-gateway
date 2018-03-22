@@ -7,24 +7,24 @@ exports.handle_gcr_events = event => {
   /*
     https://cloud.google.com/functions/docs/writing/background
 
-    ```json
+    `event`:
+
+    ```js
     {
-      "event": {
-        "context": {
-          "eventId": "78938124563234",
-          "timestamp": "2018-03-15T21:06:11.814Z",
-          "eventType": "google.pubsub.topic.publish",
-          "resource": {
-            "service": "pubsub.googleapis.com",
-            "name": "projects/some-gke-project/topics/gcr",
-            "type": "type.googleapis.com/google.pubsub.v1.PubsubMessage"
-          }
-        },
-        "data": {
-          "@type": "type.googleapis.com/google.pubsub.v1.PubsubMessage",
-          "attributes": {},
-          "data": "yJhYp24isdkdksldkekdjffkdsQWeOiJJTlNFUlQiL="
+      context: {
+        eventId: '78938124563234',
+        timestamp: '2018-03-15T21:06:11.814Z',
+        eventType: 'google.pubsub.topic.publish',
+        resource: {
+          service: 'pubsub.googleapis.com',
+          name: 'projects/some-gke-project/topics/gcr',
+          type: 'type.googleapis.com/google.pubsub.v1.PubsubMessage'
         }
+      },
+      data: {
+        '@type': 'type.googleapis.com/google.pubsub.v1.PubsubMessage',
+        attributes: {},
+        data: 'yJhYp24isdkdksldkekdjffkdsQWeOiJJTlNFUlQiL='
       }
     }
     ```
@@ -34,24 +34,25 @@ exports.handle_gcr_events = event => {
 
   console.log('raw data: ', msg.data);
 
-  const data = Buffer.from(msg.data, 'base64').toString();
+  const dataJSON = Buffer.from(msg.data, 'base64').toString();
 
   /*
     https://cloud.google.com/container-registry/docs/configuring-notifications
 
+    `dataJSON`:
+
     ```json
     {
-      "data": {
-        "action":"INSERT",
-        "digest":"gcr.io/some-gke-project/some-image-named@sha256:some-hash",
-        "tag":"gcr.io/some-gke-project/some-image-name:some-tag"
-      }
+      "action":"INSERT",
+      "digest":"gcr.io/some-gke-project/some-image-named@sha256:some-hash",
+      "tag":"gcr.io/some-gke-project/some-image-name:some-tag"
     }
     ```
 
     An action will either be "INSERT" or "DELETE".
   */
 
+  const data = JSON.parse(dataJSON);
   const [imageName, imageTag] = data.tag.split(':');
   const [, , org, repo] = imageName.split('/');
 
@@ -61,13 +62,17 @@ exports.handle_gcr_events = event => {
     );
   }
 
+  // FIXME
+  const env = 'staging';
+  const infraRepo = `${repo}-infra-${env}`;
+
   /*
     `commit` is the upstream VCS commit ID (revision). The Brigade GitHub Gateway for example,
     provides the Git commit ID using this property. If it is not provided, it may be interpreted as
     `master`, or the head of the main branch.
   */
   const commit = 'master';
-  const url = `${config.brigade_gcr_gateway}/webhook/${org}/${repo}/${commit}`;
+  const url = `${config.brigade_gcr_gateway}/webhook/${org}/${infraRepo}/${commit}`;
 
   const options = {
     method: 'POST',
@@ -81,7 +86,7 @@ exports.handle_gcr_events = event => {
   };
 
   return fetch(url, options)
-    .then(([status, statusText, json]) => {
+    .then(res => {
       if (!res.ok) {
         console.error('res status code: ', res.status);
         console.error('res status text: ', res.statusText);

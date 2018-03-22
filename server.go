@@ -78,8 +78,11 @@ func main() {
 			return
 		}
 
+		// TODO: send build id
+
 		c.JSON(http.StatusOK, gin.H{
 			"message": "OK",
+			"buildID": build.ID,
 		})
 	})
 

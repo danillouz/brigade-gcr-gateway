@@ -75,10 +75,15 @@ $ gcloud beta pubsub topics publish [PUBSUB_TOPIC_NAME] --message [PAYLOAD]
 For example:
 
 ```
-$ gcloud beta pubsub topics publish gcr --message "daniel"
+$ gcloud beta pubsub topics publish gcr --message aGVsbG8gd29ybGQ=
 ```
 
-_Note that usually the cloud function will expect the message to be `Bas64` encoded._
+_Note that the cloud function will expect the message to be `Bas64` encoded:_
+
+```
+$ echo -n "hello world" | base64
+aGVsbG8gd29ybGQ=
+```
 
 ## Viewing Cloud Function Logs
 
