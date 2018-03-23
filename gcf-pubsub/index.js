@@ -62,9 +62,11 @@ exports.handle_gcr_events = event => {
     );
   }
 
-  // FIXME
-  const env = 'staging';
+  const isProd = /v\d.\d.\d/.test(imageTag);
+  const env = isProd ? 'production' : 'staging';
   const infraRepo = `${repo}-infra-${env}`;
+
+  console.log('infra repo: ', infraRepo);
 
   /*
     `commit` is the upstream VCS commit ID (revision). The Brigade GitHub Gateway for example,
