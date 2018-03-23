@@ -62,7 +62,7 @@ exports.handle_gcr_events = event => {
     );
   }
 
-  const isProd = /v\d.\d.\d/.test(imageTag);
+  const isProd = /\d.\d.\d/.test(imageTag);
   const env = isProd ? 'production' : 'staging';
   const infraRepo = `${repo}-infra-${env}`;
 
